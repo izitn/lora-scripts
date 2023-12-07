@@ -5,6 +5,46 @@ import platform
 import subprocess
 import sys
 import webbrowser
+# 新增gradio代码
+import gradio as gr
+
+def launch_on_colab():
+    log.info("Starting SD-Trainer Mikazuki GUI on Colab...")
+    log.info(f"Base directory: {base_dir_path()}, Working directory: {os.getcwd()}")
+    log.info(f'{platform.system()} Python {platform.python_version()} {sys.executable}')
+
+    if not args.skip_prepare_environment:
+        prepare_environment()
+
+    if args.listen:
+        args.host = "0.0.0.0"
+        args.tensorboard_host = "0.0.0.0"
+
+    if not args.disable_tageditor:
+        run_tag_editor()
+
+    if not args.disable_tensorboard:
+        run_tensorboard()
+
+    os.environ["MIKAZUKI_TENSORBOARD_HOST"] = args.tensorboard_host
+    os.environ["MIKAZUKI_TENSORBOARD_PORT"] = str(args.tensorboard_port)
+
+    import uvicorn
+    log.info(f"Server started at http://{args.host}:{args.port}")
+    if not args.dev and sys.platform == "win32":
+        webbrowser.open(f"http://{args.host}:{args.port}")
+    uvicorn.run("mikazuki.app:app", host=args.host, port=args.port, log_level="error")
+
+if __name__ == "__main__":
+    args, _ = parser.parse_known_args()
+    
+    # If running on Colab, launch the server using Gradio
+    if "google.colab" in sys.modules:
+        launch_on_colab()
+    else:
+        launch()
+# 新增gradio代码
+
 
 from mikazuki.launch_utils import prepare_environment, base_dir_path
 from mikazuki.log import log
