@@ -93,7 +93,7 @@ class TaskManager:
         task_id = str(uuid.uuid4())
         task = Task(task_id=task_id, command=command, environ=environ)
         self.tasks[task_id] = task
-        task.execute()
+        # task.execute() # breaking change
         log.info(f"Task {task_id} created")
         return task
 
@@ -110,16 +110,14 @@ class TaskManager:
             task: Task = self.tasks[task_id]
             task.wait()
 
-    def dump(self):
-        return {
-            "tasks": [
-                {
-                    "id": task.task_id,
-                    "status": task.status.name,
-                }
-                for task in self.tasks.values()
-            ]
-        }
+    def dump(self) -> List[Dict]:
+        return [
+            {
+                "id": task.task_id,
+                "status": task.status.name,
+            }
+            for task in self.tasks.values()
+        ]
 
 
 tm = TaskManager()

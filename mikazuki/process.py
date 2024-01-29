@@ -1,16 +1,17 @@
 
-import sys
+import asyncio
 import os
-
+import sys
 from typing import Optional
 
-from mikazuki.tasks import tm
+from mikazuki.app.models import APIResponse
 from mikazuki.log import log
+from mikazuki.tasks import tm
 
 
 def run_train(toml_path: str,
               trainer_file: str = "./sd-scripts/train_network.py",
-              gpu_ids: Optional[list] = ["0"],
+              gpu_ids: Optional[list] = None,
               cpu_threads: Optional[int] = 2):
     log.info(f"Training started with config file / 训练开始，使用配置文件: {toml_path}")
     args = [
@@ -21,22 +22,32 @@ def run_train(toml_path: str,
         "--config_file", toml_path,
     ]
 
-    if len(gpu_ids) > 1:
-        args[3:3] = ["--multi_gpu", "--num_processes", "2"]
-
     customize_env = os.environ.copy()
     customize_env["ACCELERATE_DISABLE_RICH"] = "1"
     customize_env["PYTHONUNBUFFERED"] = "1"
-    customize_env["CUDA_VISIBLE_DEVICES"] = ",".join(gpu_ids)
 
-    try:
-        task = tm.create_task(args, customize_env)
-        if not task:
-            return
-        result = task.communicate()
-        if result.returncode != 0:
-            log.error(f"Training failed / 训练失败")
-        else:
-            log.info(f"Training finished / 训练完成")
-    except Exception as e:
-        log.error(f"An error occurred when training / 创建训练进程时出现致命错误: {e}")
+    if gpu_ids:
+        customize_env["CUDA_VISIBLE_DEVICES"] = ",".join(gpu_ids)
+        log.info(f"Using GPU(s) / 使用 GPU: {gpu_ids}")
+
+        if len(gpu_ids) > 1:
+            args[3:3] = ["--multi_gpu", "--num_processes", "2"]
+
+    if not (task := tm.create_task(args, customize_env)):
+        return APIResponse(status="error", message="Failed to create task / 无法创建训练任务")
+
+    def _run():
+        try:
+            task.execute()
+            result = task.communicate()
+            if result.returncode != 0:
+                log.error(f"Training failed / 训练失败")
+            else:
+                log.info(f"Training finished / 训练完成")
+        except Exception as e:
+            log.error(f"An error occurred when training / 训练出现致命错误: {e}")
+
+    coro = asyncio.to_thread(_run)
+    asyncio.create_task(coro)
+
+    return APIResponse(status="success", message=f"Training started / 训练开始 ID: {task.task_id}")
