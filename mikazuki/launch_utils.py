@@ -192,6 +192,19 @@ def setup_windows_bitsandbytes():
         run_pip(f"uninstall bitsandbytes -y", "bitsandbytes", live=True)
         run_pip(f"install {bnb_package} --index-url {bnb_windows_index}", bnb_package, live=True)
 
+def setup_onnxruntime():
+    onnx_version = "1.17.1"
+
+    if not is_installed(f"onnxruntime-gpu=={onnx_version}"):
+        log.info("uninstalling wrong onnxruntime version")
+        # run_pip(f"install onnxruntime=={onnx_version}", f"onnxruntime=={onnx_version}", live=True)
+        run_pip(f"uninstall onnxruntime -y", "onnxruntime", live=True)
+        run_pip(f"uninstall onnxruntime-gpu -y", "onnxruntime", live=True)
+
+        log.info(f"installing onnxruntime")
+        run_pip(f"install onnxruntime=={onnx_version}", f"onnxruntime", live=True)
+        run_pip(f"install onnxruntime-gpu=={onnx_version}", f"onnxruntime-gpu", live=True)
+
 
 def run_pip(command, desc=None, live=False):
     return run(f'"{python_bin}" -m pip {command}', desc=f"Installing {desc}", errdesc=f"Couldn't install {desc}", live=live)
@@ -216,7 +229,7 @@ def prepare_environment():
     if locale.getdefaultlocale()[0] == "zh_CN":
         log.info("detected locale zh_CN, use pip mirrors")
         os.environ.setdefault("PIP_FIND_LINKS", "https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html")
-        os.environ.setdefault("PIP_INDEX_URL", "https://mirror.baidu.com/pypi/simple")
+        os.environ.setdefault("PIP_INDEX_URL", "https://pypi.tuna.tsinghua.edu.cn/simple")
 
     if not os.environ.get("PATH"):
         os.environ["PATH"] = os.path.dirname(sys.executable)
@@ -231,3 +244,4 @@ def prepare_environment():
     requirements_file = "requirements_win.txt" if sys.platform == "win32" else "requirements.txt"
     validate_requirements(requirements_file)
     setup_windows_bitsandbytes()
+    setup_onnxruntime()

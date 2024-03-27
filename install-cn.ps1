@@ -1,7 +1,7 @@
 $Env:HF_HOME = "huggingface"
 $Env:PIP_DISABLE_PIP_VERSION_CHECK = 1
 $Env:PIP_NO_CACHE_DIR = 1
-$Env:PIP_INDEX_URL = "https://mirror.baidu.com/pypi/simple"
+$Env:PIP_INDEX_URL = "https://pypi.tuna.tsinghua.edu.cn/simple"
 function InstallFail {
     Write-Output "安装失败。"
     Read-Host | Out-Null ;
@@ -31,9 +31,9 @@ Set-Location .\sd-scripts
 Write-Output "安装程序所需依赖 (已进行国内加速，若在国外或无法使用加速源请换用 install.ps1 脚本)"
 $install_torch = Read-Host "是否需要安装 Torch+xformers? [y/n] (默认为 y)"
 if ($install_torch -eq "y" -or $install_torch -eq "Y" -or $install_torch -eq ""){
-    pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
+    pip install torch==2.2.1+cu118 torchvision==0.17.1+cu118 -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
     Check "torch 安装失败，请删除 venv 文件夹后重新运行。"
-    pip install -U -I --no-deps xformers==0.0.21
+    pip install -U -I --no-deps xformers==0.0.24+cu118 -f https://mirror.sjtu.edu.cn/pytorch-wheels/torch_stable.html
     Check "xformers 安装失败。"
 }
 

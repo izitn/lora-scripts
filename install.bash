@@ -24,20 +24,20 @@ fi
 
 echo "Installing torch & xformers..."
 
-cuda_version=$(nvcc --version | grep 'release' | sed -n -e 's/^.*release \([0-9]\+\.[0-9]\+\),.*$/\1/p')
+cuda_version=$(nvidia-smi | grep -oiP 'CUDA Version: \K[\d\.]+')
 cuda_major_version=$(echo "$cuda_version" | awk -F'.' '{print $1}')
 cuda_minor_version=$(echo "$cuda_version" | awk -F'.' '{print $2}')
 
 echo "Cuda Version:$cuda_version"
 
 if (( cuda_major_version >= 12 )); then
-    echo "install torch 2.1.0+cu121"
-    pip install torch==2.1.2+cu121 torchvision==0.16.2+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
-    pip install --no-deps xformers===0.0.23.post1
+    echo "install torch 2.2.1+cu121"
+    pip install torch==2.2.1+cu121 torchvision==0.17.1+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
+    pip install --no-deps xformers==0.0.24 --extra-index-url https://download.pytorch.org/whl/cu118
 elif (( cuda_major_version == 11 && cuda_minor_version >= 8 )); then
-    echo "install torch 2.0.1+cu118"
-    pip install torch==2.0.1+cu118 torchvision==0.15.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
-    pip install --no-deps xformers==0.0.21
+    echo "install torch 2.2.1+cu118"
+    pip install torch==2.2.1+cu118 torchvision==0.17.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+    pip install --no-deps xformers==0.0.24+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
 elif (( cuda_major_version == 11 && cuda_minor_version >= 6 )); then
     echo "install torch 1.12.1+cu116"
     pip install torch==1.12.1+cu116 torchvision==0.13.1+cu116 --extra-index-url https://download.pytorch.org/whl/cu116
