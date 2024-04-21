@@ -5,11 +5,19 @@ Schema.intersect([
             pretrained_model_name_or_path: Schema.string().role('filepicker').default("./sd-models/model.safetensors").description("底模文件路径"),
             resume: Schema.string().role('filepicker').description("从某个 `save_state` 保存的中断状态继续训练，填写文件路径"),
             vae: Schema.string().role('filepicker').description("(可选) VAE 模型文件路径，使用外置 VAE 文件覆盖模型内本身的"),
-            v2: Schema.boolean().default(false).description("底模为 sd2.0 以后的版本需要启用"),
         }).description("训练用模型"),
 
         Schema.union([
             Schema.object({
+                model_train_type: Schema.const("sd-lora"),
+                v2: Schema.boolean().default(false).description("底模为 sd2.0 以后的版本需要启用"),
+            }),
+            Schema.object({}),
+        ]),
+
+        Schema.union([
+            Schema.object({
+                model_train_type: Schema.const("sd-lora"),
                 v2: Schema.const(true).required(),
                 v_parameterization: Schema.boolean().default(false).description("v-parameterization 学习"),
                 scale_v_pred_loss_like_noise_pred: Schema.boolean().default(false).description("缩放 v-prediction 损失（与v-parameterization配合使用）"),
@@ -211,7 +219,7 @@ Schema.intersect([
     }).description("caption（Tag）选项"),
 
     Schema.object({
-        noise_offset: Schema.number().step(0.01).description("在训练中添加噪声偏移来改良生成非常暗或者非常亮的图像，如果启用推荐为 0.1"),
+        noise_offset: Schema.number().step(0.0001).description("在训练中添加噪声偏移来改良生成非常暗或者非常亮的图像，如果启用推荐为 0.1"),
         multires_noise_iterations: Schema.number().step(1).description("多分辨率（金字塔）噪声迭代次数 推荐 6-10。无法与 noise_offset 一同启用"),
         multires_noise_discount: Schema.number().step(0.01).description("多分辨率（金字塔）衰减率 推荐 0.3-0.8，须同时与上方参数 multires_noise_iterations 一同启用"),
     }).description("噪声设置"),
